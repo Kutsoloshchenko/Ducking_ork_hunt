@@ -150,11 +150,11 @@ class Training_ground(Level):
         platform.set_possition(300, SCREEN_HEIGHT - 210)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((0, 0), (280, 400), [0, -4], self, self.character_list, './/Grass//block_grass.png')
+        platform = Hover_ground((0, 0), (280, 400), [0, -2], self, self.character_list, './/Grass//block_grass.png')
         platform.set_possition(130, 344)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((700, 1300), (0, 0), [4, 0], self, self.character_list, './/Grass//block_grass.png')
+        platform = Hover_ground((700, 1300), (0, 0), [2, 0], self, self.character_list, './/Grass//block_grass.png')
         platform.set_possition(700, 185)
         self.ground_list.add(platform)
 
