@@ -125,40 +125,40 @@ class Training_ground(Level):
         Level.__init__(self, player)
         self.background = SKY
 
-        wall = Ground('.//platformerGraphicsDeluxe_Updated//Grass//stonewall.png')
+        wall = Ground('.//Grass//stonewall.png')
         wall.set_possition(0, 0)
         self.ground_list.add(wall)
 
-        wall = Ground('.//platformerGraphicsDeluxe_Updated//Grass//Grass_wals.png')
+        wall = Ground('.//Grass//Grass_wals.png')
         wall.set_possition(0, SCREEN_HEIGHT-70)
         self.ground_list.add(wall)
 
-        wall = Ground('.//platformerGraphicsDeluxe_Updated//Grass//Grass_wals.png')
+        wall = Ground('.//Grass//Grass_wals.png')
         wall.set_possition(1600, SCREEN_HEIGHT - 70)
         self.ground_list.add(wall)
 
-        platform = Ground('.//platformerGraphicsDeluxe_Updated//Grass//big_grass.png')
+        platform = Ground('.//Grass//big_grass.png')
         platform.set_possition(250, 185)
         self.ground_list.add(platform)
 
 
-        platform = Ground('.//platformerGraphicsDeluxe_Updated//Grass//block_grass.png')
+        platform = Ground('.//Grass//block_grass.png')
         platform.set_possition(480, SCREEN_HEIGHT - 210)
         self.ground_list.add(platform)
 
-        platform = Ground('.//platformerGraphicsDeluxe_Updated//Grass//block_grass.png')
+        platform = Ground('.//Grass//block_grass.png')
         platform.set_possition(300, SCREEN_HEIGHT - 210)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((0, 0), (280, 400), [0, -4], self, self.character_list, './/platformerGraphicsDeluxe_Updated//Grass//block_grass.png')
+        platform = Hover_ground((0, 0), (280, 400), [0, -4], self, self.character_list, './/Grass//block_grass.png')
         platform.set_possition(130, 344)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((700, 1300), (0, 0), [4, 0], self, self.character_list, './/platformerGraphicsDeluxe_Updated//Grass//block_grass.png')
+        platform = Hover_ground((700, 1300), (0, 0), [4, 0], self, self.character_list, './/Grass//block_grass.png')
         platform.set_possition(700, 185)
         self.ground_list.add(platform)
 
-        platform = Ground('.//platformerGraphicsDeluxe_Updated//Grass//small_grass.png')
+        platform = Ground('.//Grass//small_grass.png')
         platform.set_possition(1450, 250)
         self.ground_list.add(platform)
 
