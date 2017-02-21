@@ -1,0 +1,23 @@
+Hello friend. Can you help me with my trouble?
+I have lost my precious gem.&Can you please find it for me?
+It is big green gem.
+Thanks a lot. I will brew you a healing potion
+***
+Answer# Sure, how can i help# 1@ Exit# I have no time for elfs
+Confirm# I'll look for it, no problem# 3@ Answer# What this gem was like?# 2@ Exit# I only do killings
+Confirm# Okay, i'll find it# 3@ Exit# I only do killings
+Exit# See ya
+***
+Dou you have it?
+Please, please, please, i have to have it back!
+Thanks a lot! Here is you potion!
+You say you have it, but you actually dont. &I dont get you humans
+***
+Complete_quest# yes# 2# 3@ Answer# no# 1
+Exit# i'll get going
+Success# thanks a lot
+Exit# i'll get going
+***
+Mom told me not to talk to humans
+***
+Exit# You remembered that only when you got you gem back...

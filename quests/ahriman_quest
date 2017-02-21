@@ -1,0 +1,25 @@
+Hello lad! Do you wanna do some witch hunting?
+There is witch in this woods. If you kill her,&i will give you a mana potion
+The witch needs to die! She just has to!
+Then mind your own, you filthy mage
+***
+Confirm# yes# 1#@ Answer# no# 3#@ Answer# I would like to know more# 2
+Exit# got it
+Exit# Okay@ Exit# I aint doing your dirty job old man
+Exit# I will, old rat
+***
+So, is the witch is dead?
+You really need to get going and kill that bit... witch
+Nice job! Here is your reward
+She aint dead, did you try to foll me you rat?
+She was pregnat! Never sleep with witch,&its a hustle to get rid of them
+***
+Complete_quest# yes# 2# 3@ Answer# no# 1
+Exit# i'll get going
+Success# thanks a lot@ Answer# why did you need that witch dead?# 4
+Exit# It was worth a try
+Success# I still wanna dat potion boi@ Exit# You are just an old bastard, keep your filthy stuff
+***
+I have no more business with you, rat
+***
+Exit# You old rat, do you know that?
