@@ -37,6 +37,9 @@ class Pickappble_object(pygame.sprite.Sprite):
         else:
             self.speed_y += 0.35
 
+    def set_possition(self, x=0, y=0):
+        self.rect.x = x
+        self.rect.y = y
 
 class Health_potion(Pickappble_object):
     def __init__(self, ground, x, y):

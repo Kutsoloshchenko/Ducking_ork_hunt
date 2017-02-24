@@ -39,6 +39,10 @@ class Character(Animated_sprite):
         if len(ground_hit_list) > 0:
             self.speed_y = -10
 
+    def set_possition(self, x=0, y=0):
+        self.rect.x = x
+        self.rect.y = y
+
     def _animation(self):
         pos = self.rect.x + self.ground.shift
         if self.direction == 'R':
@@ -86,15 +90,16 @@ class Character(Animated_sprite):
 
 
 class Enemy(Character):
-    def __init__(self, ground, possitions, sprite_list, image):
+    def __init__(self, ground, sprite_list, image):
         super().__init__(image, sprite_list)
         self.HP = 0
         self.ground = ground
-        self.boundary_1 = possitions[2]
-        self.rect.x = possitions[0]
-        self.rect.y = possitions[1]
-        self.boundary = [self.rect.x, self.rect.x + self.boundary_1]
         self._in_boundaries = 1
+
+    def get_boundaries(self, boundary):
+        self.boundary_1 = boundary
+        self.boundary = [self.rect.x, self.rect.x + self.boundary_1]
+
 
     def _check_if_will_fall(self):
         if self.speed_x > 0 and self.speed_y == 0:
@@ -448,14 +453,12 @@ class Hero(Character):
 
 
 class NPC(Character):
-    def __init__(self, ground, object, possition, reward, sprite_list, image, kill_or_geather, not_taken, taken, completed):
+    def __init__(self, ground, object, reward, sprite_list, image, kill_or_geather, not_taken, taken, completed):
         Character.__init__(self, image, sprite_list)
         self.object = object
         self.ground = ground
         self.task = kill_or_geather
         self.reward_item = reward
-        self.rect.x = possition[0]
-        self.rect.y = possition[1]
         self.quest_taken = 0
         self.quest_completed = 0
         self.quest = Quest_dialog(self, not_taken, taken, completed)

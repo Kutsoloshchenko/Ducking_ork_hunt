@@ -162,9 +162,17 @@ class Training_ground(Level):
         platform.set_possition(1450, 250)
         self.ground_list.add(platform)
 
-        self.items_list.add(Health_potion(self, 200, 200))
-        self.items_list.add(Mana_potion(self, 1800, 500))
-        gem = Quest_object(self, 300, 200)
+
+        item = Health_potion(self)
+        item.set_possition(200,200)
+        self.items_list.add(item)
+
+        item = Mana_potion(self)
+        item.set_possition(1800, 500)
+        self.items_list.add(item)
+
+        gem = Quest_object(self)
+        gem.set_possition(300,200)
         self.items_list.add(gem)
 
         witch = Witch(self, (750, SCREEN_HEIGHT-150, 400))
