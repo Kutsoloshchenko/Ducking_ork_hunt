@@ -33,7 +33,7 @@ class Pickappble_object(pygame.sprite.Sprite):
     def gravity(self):
         # Apply gravity, and make sure we have collision with any block we are staying at
         if self.speed_y == 0:
-            self.speed_y = 1
+            self.speed_y = 2
         else:
             self.speed_y += 0.35
 
