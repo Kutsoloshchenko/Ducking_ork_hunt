@@ -31,8 +31,6 @@ def main():
 
     active_elements = pygame.sprite.Group()
     hero.ground = current_level
-    hero.rect.x = 100
-    hero.rect.bottom = SCREEN_HEIGHT - 70 - 100
     active_elements.add(hero)
     clock = pygame.time.Clock()
     gameExit = False
@@ -95,7 +93,6 @@ def main():
         screen.blit(hud, (35, 35))
         hero.hud_draw(screen)
         active_elements.draw(screen)
-
 
 
         clock.tick(60)

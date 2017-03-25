@@ -6,7 +6,6 @@ import os
 class Quest_dialog():
     def __init__(self, NPC, not_active, active, compleated):
         self.font = pygame.font.SysFont('Pinewood', 20)
-        self.object = NPC.object
         self.NPC = NPC
         self.name = self.font.render(self.NPC.name, 1, BROWN)
 
@@ -116,7 +115,7 @@ class Answer:
 
 class Confirm(Answer):
     def if_picked(self, NPC):
-        NPC.quest_taken = 1
+        NPC.init_quest()
         return self.return_number
 
 

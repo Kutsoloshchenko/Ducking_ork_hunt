@@ -44,7 +44,7 @@ class Character(Animated_sprite):
         self.rect.y = y
 
     def _animation(self):
-        pos = self.rect.x + self.ground.shift
+        pos = self.rect.x + self.ground.shift_x
         if self.direction == 'R':
             frame = (pos // 30) % len(self.animation_frames_r)
             self.image = self.animation_frames_r[frame]
@@ -93,13 +93,21 @@ class Enemy(Character):
     def __init__(self, ground, sprite_list, image):
         super().__init__(image, sprite_list)
         self.HP = 0
-        self.ground = ground
+        self.ground = ground[0]
         self._in_boundaries = 1
+        self.boundary = None
+
+    def on_click(self):
+        self.get_boundaries(int(input('Введите границы патрулирования = ')))
+
+    def set_possition(self, x=0, y=0):
+        Character.set_possition(self, x, y)
+        if not self.boundary:
+            self.get_boundaries(200)
 
     def get_boundaries(self, boundary):
         self.boundary_1 = boundary
         self.boundary = [self.rect.x, self.rect.x + self.boundary_1]
-
 
     def _check_if_will_fall(self):
         if self.speed_x > 0 and self.speed_y == 0:
@@ -116,6 +124,9 @@ class Enemy(Character):
                 self.speed_x *= -1
             self.rect.left += 10
             self.rect.bottom -= 40
+
+    def reload(self):
+        self.rect.x = self.boundary[0]
 
     def _see_enemy(self):
         self.rect.x += self.vision
@@ -160,7 +171,7 @@ class Enemy(Character):
             self.direction = 'R'
         if self._in_boundaries:
 
-            cur_pos = self.rect.x - self.ground.shift
+            cur_pos = self.rect.x - self.ground.shift_x
             if (cur_pos >= self.boundary[0] and cur_pos >= self.boundary[1]) or (
                     cur_pos <= self.boundary[0] and cur_pos <= self.boundary[1]):
                 self._in_boundaries = 0
@@ -168,7 +179,7 @@ class Enemy(Character):
                 self.speed_x *= -1
                 self._in_boundaries = 1
         else:
-            cur_pos = self.rect.x - self.ground.shift
+            cur_pos = self.rect.x - self.ground.shift_x
             if cur_pos <= self.boundary[0]+10 and self.speed_x <0:
                 self.speed_x *= -1
             elif cur_pos >= self.boundary[1]-10 and self.speed_x >0:
@@ -206,13 +217,13 @@ class Enemy(Character):
 
 
 class Bandit(Enemy):
-    def __init__(self, ground, possitions):
+    def __init__(self, ground):
         sprite_list = [ (0, 108, 30, 50),
                         (37, 108, 30, 50),
                         (70, 108, 30, 50),
                         (102, 108, 30, 50)
         ]
-        super().__init__(ground, possitions, sprite_list, image='.//characters//bandit.png')
+        super().__init__(ground, sprite_list, image='.//characters//bandit.png')
         self.speed_x = 5
         self.HP = 25
         self.damage = 5
@@ -234,13 +245,13 @@ class Bandit(Enemy):
 
 
 class Witch(Enemy):
-    def __init__(self, ground, possitions):
+    def __init__(self, ground):
         sprite_list = [(0, 97, 30, 45),
                        (34, 97, 30, 45),
                        (66, 97, 30, 45),
                        (98, 97, 30, 45)
                        ]
-        super().__init__(ground, possitions, sprite_list, image='.//characters//witch.png')
+        super().__init__(ground, sprite_list, image='.//characters//witch.png')
         self.speed_x = 5
         self.HP = 15
         self.damage = 15
@@ -275,13 +286,21 @@ class Hero(Character):
     def world_shift(self):
         if self.rect.right >= 500:
             diff = self.rect.right - 500
-            self.ground.shift_level(-diff)
+            self.ground.shift_level(-diff, 0)
             self.rect.right = 500
         elif self.rect.left <= 100:
-            self.ground.shift_level(100 - self.rect.left)
+            self.ground.shift_level(100 - self.rect.left, 0)
             self.rect.left = 100
 
-    def cast(self, spell, directions = None):
+        if self.rect.bottom >= 600:
+            diff = self.rect.bottom - 600
+            self.ground.shift_level(0, -diff)
+            self.rect.bottom = 600
+        elif self.rect.top <= 100:
+            self.ground.shift_level(0, 100 - self.rect.top)
+            self.rect.top = 100
+
+    def cast(self, spell, directions=None):
         if self.MP - spell.mana_cost >= 0 and self.spell_cd == 0:
             self.MP -= spell.mana_cost
             self.spell_cd = 10
@@ -344,7 +363,7 @@ class Hero(Character):
             self.teleporta_frames.append(self._get_image(sprite[0], sprite[1], sprite[2], sprite[3], sprite_image))
 
     def _teleporta_animation(self):
-        pos = self.rect.x + self.ground.shift
+        pos = self.rect.x + self.ground.shift_x
         if self.direction == 'R':
             frame = (pos // 2) % len(self.teleporta_frames)
             self.image = self.teleporta_frames[frame]
@@ -453,12 +472,11 @@ class Hero(Character):
 
 
 class NPC(Character):
-    def __init__(self, ground, object, reward, sprite_list, image, kill_or_geather, not_taken, taken, completed):
-        Character.__init__(self, image, sprite_list)
-        self.object = object
-        self.ground = ground
-        self.task = kill_or_geather
-        self.reward_item = reward
+    def __init__(self, settings):
+        sprite_list = [(68, 0, 25, 46)]
+        not_taken, taken, completed = self._get_text_from_txt(settings[1])
+        Character.__init__(self, self.image, sprite_list)
+        self.ground = settings[0]
         self.quest_taken = 0
         self.quest_completed = 0
         self.quest = Quest_dialog(self, not_taken, taken, completed)
@@ -477,38 +495,102 @@ class NPC(Character):
 
             return False
 
+    def init_quest(self):
+        self.quest_taken = 1
+        exec('self.object = %s' % self.target_object)
+        self.object.set_possition(self.object_coordinates[0], self.object_coordinates[1])
+        if self.task == 'kill':
+            self.ground.enemy_list.add(self.object)
+        else:
+            self.ground.items_list.add(self.object)
+
     def use(self, clock, screen):
         self.quest.draw(clock, screen)
 
     def reward(self):
-        if self.reward_item == Mana_potion:
+        if self.reward_item == 'Mana_potion':
             if self.ground.player.mana_potions < 9:
                 self.ground.player.mana_potions += 1
             else:
                 self.ground.items_list.add(Mana_potion(self.ground, self.rect.x-20, self.rect.y))
             self.quest_completed = 1
 
-        if self.reward_item == Health_potion:
+        if self.reward_item == 'Health_potion':
             if self.ground.player.health_potions < 9:
                 self.ground.player.health_potions += 1
             else:
                 self.ground.items_list.add(Health_potion(self.ground, self.rect.x-20, self.rect.y))
             self.quest_completed = 1
 
+    def _get_text_from_txt(self, file):
+        with open(file, 'r') as file:
+            file_read = file.read()
 
-class Ahriman_mage(NPC):
-    def __init__(self, ground, object, possition, reward, kill_or_geather, not_taken, taken, completed):
-        self.name = 'Ahriman'
-        sprite_sheet = './/characters//Ahriman.png'
-        sprite_list = [(68, 0, 25, 46)]
-        NPC.__init__(self, ground, object, possition, reward, sprite_list, sprite_sheet, kill_or_geather, not_taken,
-                     taken, completed)
+        file = file_read.split('***')
+        file_header = file[0]
+        self._get_header_info(file_header)
 
+        file_not_taken = file[1:3]
+        file_taken = file[3:5]
+        file_complete = file[5:]
 
-class Elf_girl(NPC):
-    def __init__(self, ground, object, possition, reward, kill_or_geather, not_taken, taken, completed):
-        self.name = 'Elf'
-        sprite_sheet = './/characters//nightelf_female2.png'
-        sprite_list = [(68, 0, 25, 46)]
-        NPC.__init__(self, ground, object, possition, reward, sprite_list, sprite_sheet, kill_or_geather, not_taken,
-                     taken, completed)
+        not_taken = self._get_object_from_list(file_not_taken)
+        taken = self._get_object_from_list(file_taken)
+        comleated = self._get_object_from_list(file_complete)
+
+        for el in not_taken:
+            for element in el:
+                if not element:
+                    el.remove(element)
+
+        for el in taken:
+            for element in el:
+                if not element:
+                    el.remove(element)
+
+        for el in comleated:
+            for element in el:
+                if not element:
+                    el.remove(element)
+
+        return not_taken, taken, comleated
+
+    def _get_header_info(self, big_string):
+        text = big_string.split('\n')
+        self.image = text[0].split('Image = ')[1].lstrip()
+        self.task = text[1].split('Task = ')[1].lstrip()
+        self.target_object = text[2].split('Object = ')[1].lstrip()
+        self.object_coordinates = (int(text[3].split('Object X = ')[1].lstrip()),
+                                   int(text[4].split('Object y = ')[1].lstrip()))
+        self.reward_item = text[5].split('Reward = ')[1].lstrip()
+        self.name = text[6].split('Name = ')[1].lstrip()
+
+    def _get_object_from_list(self, list):
+        text = list[0].split('\n')
+        text = [i.lstrip() for i in text]
+        answers = list[1].split('\n')
+        return_answers = []
+        for i in answers:
+            answers_list = i.split('@')
+            temp = []
+            for answer in answers_list:
+                answer_from_func = self._get_class_from_answer(answer)
+                if answer_from_func:
+                    temp.append(self._get_class_from_answer(answer))
+            return_answers.append(temp)
+
+        return [text, return_answers]
+
+    def _get_class_from_answer(self, answer):
+        answer_line = answer.split('#')
+        answer_line = [i.lstrip() for i in answer_line]
+        if 'Confirm' in answer_line[0]:
+            return Confirm(answer_line[1], int(answer_line[2]))
+        elif 'Answer' in answer_line[0]:
+            return Answer(answer_line[1], int(answer_line[2]))
+        elif 'Exit' in answer_line[0]:
+            return Exit(answer_line[1])
+        elif 'Complete_quest' in answer_line[0]:
+            return Complete_quest(answer_line[1], int(answer_line[2]), int(answer_line[3]))
+        elif 'Success' in answer_line[0]:
+            return Success(answer_line[1])

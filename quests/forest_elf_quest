@@ -1,3 +1,11 @@
+Image = .//characters//nightelf_female2.png
+Task = find
+Object = Quest_object([self.ground, './/items//hud_gem_green.png'])
+Object X = 500
+Object y = 350
+Reward = Mana_potion
+Name = Elf Girl
+***
 Hello friend. Can you help me with my trouble?
 I have lost my precious gem.&Can you please find it for me?
 It is big green gem.

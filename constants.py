@@ -13,6 +13,12 @@ BROWN= (127, 51, 0)
 
 class Animated_sprite(pygame.sprite.Sprite):
 
+    def on_click(self):
+        pass
+
+    def reload(self):
+        pass
+
     def _get_animation(self, sprite_image, sprite_list):
         walking_frames_r = []
 
