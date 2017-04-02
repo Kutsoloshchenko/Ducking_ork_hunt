@@ -186,6 +186,7 @@ class Projectile(Spell):
         else:
             self.direction = 'L'
             original_x = self.caster.rect.left
+            self.animation = [pygame.transform.flip(i, True, False) for i in self.animation]
             was_x = -1
             was_y = -1
 
