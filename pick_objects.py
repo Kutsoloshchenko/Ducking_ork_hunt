@@ -4,7 +4,7 @@ from constants import *
 from grounds import Hover_ground
 
 
-class Pickappble_object(pygame.sprite.Sprite):
+class Pickappble_object(Animated_sprite):
     def __init__(self, ground, image):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(os.path.join(image)).convert()
@@ -12,12 +12,6 @@ class Pickappble_object(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.speed_y = 0
         self.ground = ground
-
-    def on_click(self):
-        pass
-
-    def reload(self):
-        pass
 
     def update(self):
         self.gravity()
@@ -42,14 +36,11 @@ class Pickappble_object(pygame.sprite.Sprite):
         else:
             self.speed_y += 0.35
 
-    def set_possition(self, x=0, y=0):
-        self.rect.x = x
-        self.rect.y = y
 
 
 class Health_potion(Pickappble_object):
     def __init__(self, ground):
-        image = './/items//pt1_test.png'
+        image = './/items//whiskey.png'
         super().__init__(ground[0], image)
 
 
@@ -62,3 +53,11 @@ class Mana_potion(Pickappble_object) :
 class Quest_object(Pickappble_object):
     def __init__(self, ground):
         super().__init__(ground[0], ground[1])
+
+class Ladder(Pickappble_object):
+    def __init__(self, ground):
+        image = './/items//ladder.png'
+        super().__init__(ground[0], image)
+
+    def update(self):
+        pass

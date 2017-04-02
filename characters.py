@@ -2,10 +2,9 @@ import pygame
 from constants import *
 from grounds import Hover_ground
 from spells import Enemy_Fireball
-from pick_objects import Mana_potion, Health_potion, Quest_object
+from pick_objects import Mana_potion, Health_potion, Quest_object, Ladder
 from quest_menu import *
 import os
-
 
 class Character(Animated_sprite):
     def __init__(self, image, sprite_list):
@@ -17,6 +16,7 @@ class Character(Animated_sprite):
         self.rect = self.image.get_rect()
         self.ground = None
         self.direction = 'R'
+        self.climbing = False
 
     def dead_or_alive(self):
         if self.HP <=0 or self.rect.y > SCREEN_HEIGHT:
@@ -33,28 +33,26 @@ class Character(Animated_sprite):
         # Check that we have platform under, by moving 2 pixels down and checking for collision
         self.rect.y += 2
         ground_hit_list = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
+        ground_hit_list = ground_hit_list + pygame.sprite.spritecollide(self, self.ground.items_list, False)
         self.rect.y -= 2
 
         # If there is ground under feet of hero - it will jump 10 inches
-        if len(ground_hit_list) > 0:
-            self.speed_y = -10
-
-    def set_possition(self, x=0, y=0):
-        self.rect.x = x
-        self.rect.y = y
+        for i in ground_hit_list:
+            if self.rect.bottom <= i.rect.bottom:
+                self.speed_y = -10
+                break
 
     def _animation(self):
         pos = self.rect.x + self.ground.shift_x
         if self.direction == 'R':
-            frame = (pos // 30) % len(self.animation_frames_r)
+            frame = (pos // 24) % len(self.animation_frames_r)
             self.image = self.animation_frames_r[frame]
         else:
-            frame = (pos // 30) % len(self.animation_frames_r)
+            frame = (pos // 24) % len(self.animation_frames_r)
             self.image = self.animation_frames_l[frame]
 
     def _collision_with_x(self):
         collisions_with_x = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
-
         for hit in collisions_with_x:
             if self.speed_x > 0:
                 self.rect.right = hit.rect.left
@@ -65,26 +63,41 @@ class Character(Animated_sprite):
         collisions_with_y = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
 
         for hit in collisions_with_y:
-            if self.speed_y > 0:
+
+
+            if self.rect.bottom >= hit.rect.bottom:
+                continue
+
+
+            if self.rect.bottom >= hit.rect.top:
                 self.rect.bottom = hit.rect.top
-            else:
-                self.rect.top = hit.rect.bottom
-            self.speed_y = 0
+                self.speed_y = 0
+
+            #else:
+            #self.rect.top = hit.rect.bottom
+
 
             if isinstance(hit, Hover_ground):
                 self.rect.x += hit.speed[0]
 
+        collisions_with_ladder = pygame.sprite.spritecollide(self, self.ground.items_list, False)
+        for hit in collisions_with_ladder:
+            if isinstance(hit, Ladder):
+                if self.rect.bottom <= hit.rect.top+20:
+                    self.rect.bottom = hit.rect.top
+                    self.speed_y = 0
+                    break
+
     def update(self):
         # updates position of element
-
-        self.gravity()
 
         self.rect.x +=self.speed_x
 
         self._animation()
 
-        self._collision_with_x()
-
+        #self._collision_with_x()
+        if not self.climbing:
+            self.gravity()
         self.rect.y += self.speed_y
         self._collision_with_y()
 
@@ -96,9 +109,25 @@ class Enemy(Character):
         self.ground = ground[0]
         self._in_boundaries = 1
         self.boundary = None
+        self.revive_counter = 0
 
     def on_click(self):
         self.get_boundaries(int(input('Введите границы патрулирования = ')))
+        self.initial_x, self.initial_y = self.rect.x, self.rect.y
+
+    def revive(self):
+        self.revive_counter +=1
+        if self.revive_counter == 500:
+            self.ground.dead_enemy_list.remove(self)
+            self.ground.enemy_list.add(self)
+            self.reload()
+            self.HP = self.start_HP
+            self.revive_counter = 0
+
+    def dead_or_alive(self):
+        if self.HP <= 0 or self.rect.y > SCREEN_HEIGHT:
+            self.kill()
+            self.ground.dead_enemy_list.append(self)
 
     def set_possition(self, x=0, y=0):
         Character.set_possition(self, x, y)
@@ -124,9 +153,6 @@ class Enemy(Character):
                 self.speed_x *= -1
             self.rect.left += 10
             self.rect.bottom -= 40
-
-    def reload(self):
-        self.rect.x = self.boundary[0]
 
     def _see_enemy(self):
         self.rect.x += self.vision
@@ -225,7 +251,7 @@ class Bandit(Enemy):
         ]
         super().__init__(ground, sprite_list, image='.//characters//bandit.png')
         self.speed_x = 5
-        self.HP = 25
+        self.HP, self.start_HP = 25, 25
         self.damage = 5
         self.attack_mode = 0
         self.cool_down = 0
@@ -253,7 +279,7 @@ class Witch(Enemy):
                        ]
         super().__init__(ground, sprite_list, image='.//characters//witch.png')
         self.speed_x = 5
-        self.HP = 15
+        self.HP, self.start_HP = 15, 15
         self.damage = 15
         self.attack_mode = 0
         self.cool_down = 0
@@ -274,38 +300,53 @@ class Hero(Character):
 
     def __init__(self, image, sprite_list):
         Character.__init__(self, image, sprite_list)
-        self.HP, self.MP, self.max_HP, self.max_MP = (100, 100, 100, 100)
+        self.HP, self.bullets_num, self.max_HP, self.max_MP = (50, 6, 100, 100)
         self._get_teleporta_frames()
         self.teleporta_time, self.spell_cd, self.inactive_time = [0 for i in range(3)]
         self.teleporta_distance = 30
         self.image_health = pygame.image.load(os.path.join('.//HUD//health.png')).convert()
-        self.image_mana = pygame.image.load(os.path.join('.//HUD//mana.png')).convert()
+        self.bullets = pygame.image.load(os.path.join('.//HUD//cilinder.jpg')).convert()
+        self.image_hud = pygame.image.load(os.path.join('.//HUD//menu.jpg')).convert()
+        self.empty_bar = pygame.image.load(os.path.join('.//HUD//SleekBars_empty.png')).convert()
+        self.bullets_animation = self._get_bullets_animations()
         self._get_potions()
         self.quest_items = []
+        self.target = pygame.image.load(os.path.join('.//HUD//target.png')).convert()
+        self.target.set_colorkey(BLACK)
+        pygame.mouse.set_visible(False)
+
+    def reload(self):
+        if self.bullets_num !=6 :
+            self.bullets_num += 1
+            self.inactive_time = 10
+            file = self.ground.m_player('.//sound//Sound_exf//reload.wav')
+            self.ground.m_player.play(file, loops=0)
 
     def world_shift(self):
-        if self.rect.right >= 500:
-            diff = self.rect.right - 500
+        if self.rect.right >= (SCREEN_WIDTH * 4 // 5):
+            diff = self.rect.right - (SCREEN_WIDTH * 4 // 5)
             self.ground.shift_level(-diff, 0)
-            self.rect.right = 500
-        elif self.rect.left <= 100:
-            self.ground.shift_level(100 - self.rect.left, 0)
-            self.rect.left = 100
+            self.rect.right = (SCREEN_WIDTH * 4 // 5)
+        elif self.rect.left <= (SCREEN_WIDTH // 5):
+            self.ground.shift_level((SCREEN_WIDTH // 5) - self.rect.left, 0)
+            self.rect.left = (SCREEN_WIDTH // 5)
 
-        if self.rect.bottom >= 600:
-            diff = self.rect.bottom - 600
+        if self.rect.bottom >= (SCREEN_HEIGHT - 220):
+            diff = self.rect.bottom - (SCREEN_HEIGHT - 220)
             self.ground.shift_level(0, -diff)
-            self.rect.bottom = 600
-        elif self.rect.top <= 100:
-            self.ground.shift_level(0, 100 - self.rect.top)
-            self.rect.top = 100
+            self.rect.bottom = (SCREEN_HEIGHT - 220)
+        elif self.rect.top <= (SCREEN_WIDTH // 5):
+            self.ground.shift_level(0, (SCREEN_WIDTH // 5) - self.rect.top)
+            self.rect.top = (SCREEN_WIDTH // 5)
 
     def cast(self, spell, directions=None):
-        if self.MP - spell.mana_cost >= 0 and self.spell_cd == 0:
-            self.MP -= spell.mana_cost
-            self.spell_cd = 10
+        if self.bullets_num > 0 and self.spell_cd == 0:
+            self.bullets_num -= 1
+            self.inactive_time = 10
             if directions:
                 self.ground.projectile_list.add(spell(self, directions))
+                file = self.ground.m_player(spell.music_file)
+                self.ground.m_player.play(file, loops = 0)
             else: self.ground.projectile_list.add(spell(self))
 
     def _get_potions(self):
@@ -320,11 +361,14 @@ class Hero(Character):
                         (0, 50*8, 90, 40),
                         (0, 50*9, 90, 40),
         ]
-        mana_image = pygame.image.load(os.path.join('.//HUD//mana_potions(0,50y,40,90).png')).convert()
-        health_image = pygame.image.load(os.path.join('.//HUD//health_potions(0,50y,40,90).png')).convert()
-        self.image_mana_potion = self._get_animation(mana_image, sprite_list)[0]
+        health_image = pygame.image.load(os.path.join('.//HUD//whiskey(0,50y,40,90).png')).convert()
         self.image_health_potion = self._get_animation(health_image, sprite_list)[0]
-        self.mana_potions, self.health_potions = (0,0)
+        self.health_potions = 0
+
+    def _draw_target(self, screen):
+        pos = pygame.mouse.get_pos()
+        offset = (pos[0] + 35, pos[1] - 35)
+        screen.blit(self.target, offset)
 
     def move_right(self):
         self.speed_x = 6
@@ -334,8 +378,33 @@ class Hero(Character):
         self.speed_x = -6
         self.direction = 'L'
 
+    def move_up(self):
+        collisions_with_ladder = pygame.sprite.spritecollide(self, self.ground.items_list, False)
+        for hit in collisions_with_ladder:
+            if isinstance(hit, Ladder):
+                self.climbing = True
+                self.speed_y = -2
+                return
+
+        self.jump()
+
+    def fall(self):
+        self.rect.y +=2
+        collisions_with_y = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
+        collisions_with_y= collisions_with_y + pygame.sprite.spritecollide(self, self.ground.items_list, False)
+        self.rect.y -= 2
+
+        for hit in collisions_with_y:
+            self.rect.bottom += 40
+            break
+
     def stop(self):
         self.speed_x = 0
+
+    def stop_y(self):
+        if self.climbing:
+            self.speed_y = 0
+            self.climbing = False
 
     def teleporta(self):
         if self.MP >= 20:
@@ -343,6 +412,28 @@ class Hero(Character):
             self.teleporta_time = 10
             self.inactive_time = 10
             self.invul_time = 10
+
+    def _get_bullets_animations(self):
+        return_list = []
+        sprite_image = pygame.image.load(os.path.join('.//HUD//cilinder.jpg')).convert()
+        y = 150
+        x = 0
+        sprite_list = [(x, y*0, 140, 150),
+                       (x, y*1, 140, 150),
+                       (x, y*2, 140, 150),
+                       (x, y*3, 140, 150),
+                       (x, y*4, 140, 150),
+                       (x, y*5, 140, 150),
+                       (x, y*6, 140, 150),
+                       (x, y*7, 140, 150),
+                       (x, y*8, 140, 150),
+                       (x, y*9, 140, 150),
+                       (x, y*10, 140, 150),
+                       (x, y * 11, 140, 150)
+                       ]
+        for sprite in sprite_list:
+            return_list.append(self._get_image(sprite[0], sprite[1], sprite[2], sprite[3], sprite_image))
+        return return_list
 
     def _get_teleporta_frames(self):
         self.teleporta_frames = []
@@ -406,32 +497,10 @@ class Hero(Character):
                 hit.kill()
 
     def update(self):
-
-        if not self.teleporta_time:
-            Character.update(self)
-            self.pick_up()
-
-        else:
-            self.teleporta_time -= 1
-            self.inactive_time -= 1
-
-            if self.direction == 'R':
-                self.rect.x += self.teleporta_distance
-            else:
-                self.rect.x -= self.teleporta_distance
-
-            self._teleporta_animation()
-
-            if self.teleporta_time == 0:
-                self._teleporta_collision()
-
-                self.rect.y += self.speed_y
-
-                self._collision_with_y()
-
-            if self.invul_time != 0:
-                self.invul_time -= 1
-
+        if self.inactive_time:
+            self.inactive_time-=1
+        Character.update(self)
+        self.pick_up()
         self._cool_downs()
 
     def drink_potion(self, type):
@@ -445,23 +514,20 @@ class Hero(Character):
                 self.HP += int(self.max_HP*0.25)
 
     def hud_draw(self, screen):
-        if self.HP == 100 :
-            screen.blit(self.image_health, (35, 35))
-        else:
-            percent = self.HP/100
-            screen.blit(self.image_health, (35, 35), pygame.Rect(0, 0, 128*percent, 32))
 
-        if self.MP == 100:
-            screen.blit(self.image_mana, (35, 68))
-        else:
-            percent = self.MP / 100
-            screen.blit(self.image_mana, (35, 68), pygame.Rect(0, 0, 128 * percent, 32))
+        screen.blit(self.image_hud, (0, SCREEN_HEIGHT-150), pygame.Rect(0, 0, SCREEN_WIDTH, 150))
 
-        if self.mana_potions >= 0:
-            screen.blit(self.image_mana_potion[self.mana_potions], (700, 30+40))
+        percent = self.HP/100
+        screen.blit(self.empty_bar, (35, SCREEN_HEIGHT-150))
+        screen.blit(self.image_health, (35, SCREEN_HEIGHT-150), pygame.Rect(0, 0, 32, 128*percent))
+        screen.blit(self.bullets_animation[6-self.bullets_num], (SCREEN_WIDTH - 150, SCREEN_HEIGHT - 150))
+
+
 
         if self.health_potions >= 0:
-            screen.blit(self.image_health_potion[self.health_potions], (700, 30))
+            screen.blit(self.image_health_potion[self.health_potions], (400, SCREEN_HEIGHT - 100))
+
+        self._draw_target(screen)
 
     def receive_mellie_hit(self):
         self.invul_time = 10

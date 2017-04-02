@@ -4,7 +4,8 @@ from constants import *
 from grounds import *
 from levels import Level
 from characters import Bandit, Witch, Hero, NPC
-from pick_objects import Mana_potion, Health_potion
+from pick_objects import Mana_potion, Health_potion, Ladder
+
 
 class Redactor(Level):
     def __init__(self):
@@ -16,8 +17,8 @@ class Redactor(Level):
                        (64, 97, 32, 47),
                        (96, 97, 32, 47)
                        ]
-        self.hero = Hero('.//characters//green_mage.png', sprite_list)
-        super().__init__(player =self.hero)
+        self.hero = Hero('.//characters//hero.png', sprite_list)
+        super().__init__(player =self.hero, file = None)
         self.hero.set_possition(0, 0)
         self.image = pygame.image.load(os.path.join('.//redactor//images//grid.bmp')).convert()
         self.image_coord = [0, 0]
@@ -29,16 +30,19 @@ class Redactor(Level):
         self.shift_y = 0
 
         pygame.display.set_caption("redactor")
-        self.background = (WHITE)
+        self.background = pygame.image.load(os.path.join('.//redactor//images//sample.jpg')).convert()
         self.clock = pygame.time.Clock()
         self.statick_menu = [
             Grass_ground_static(self.ground_list, self),
+            Wood_ground_static(self.ground_list, self),
+            Sand_ground_static(self.ground_list, self),
             Grass_ground_hover(self.ground_list, self),
             Bandit_statick(self.enemy_list, self),
             Witch_static(self.enemy_list, self),
             Mana_potion_static(self.items_list, self),
             Health_potion_static(self.items_list, self),
-            NPC_static(self.use_list, self)
+            NPC_static(self.use_list, self),
+            Ladder_static(self.items_list, self)
         ]
         self.file = ".//redactor//test_file.py"
         self.update_switch = -1
@@ -72,8 +76,9 @@ class Redactor(Level):
 
     def _draw(self):
 
-        self.screen.fill(self.background)
-        self.screen.blit(self.image, tuple(self.image_coord))
+        self.screen.fill(WHITE)
+        self.screen.blit(self.background, (self.shift_x, self.shift_y))
+        #self.screen.blit(self.image, tuple(self.image_coord))
         self.ground_list.draw(self.screen)
         self.enemy_list.draw(self.screen)
         self.projectile_list.draw(self.screen)
@@ -170,6 +175,15 @@ class Redactor(Level):
 
                         self.shift_x, self.shift_y = 0, 0
 
+                    elif event.key == pygame.K_u:
+                        pos = pygame.mouse.get_pos()
+                        for sprite in self.ground_list:
+                            if active_object and sprite.rect.collidepoint(pos):
+                                sprite.rect = sprite.rect.union(active_object)
+                                active_object = None
+
+
+
                     elif event.key == pygame.K_t:
                         self.update_switch *= -1
                     elif event.key == pygame.K_LALT:
@@ -228,14 +242,12 @@ class Redactor(Level):
                     file.write('self.ground_list.add(platform)\n')
                     file.write('\n')
 
-            else:
-                file = open(self.file, 'a')
+                else:
 
-                file.write('platform= %s(["%s", %d])\n' % (ground.__class__.__name__, ground.image_path ,ground.rect.width))
-                file.write('platform.set_possition(%d, %d)\n' % (ground.rect.x, ground.rect.y))
-                file.write('self.ground_list.add(platform)\n')
-                file.write('\n')
-                file.close()
+                    file.write('platform= %s(["%s", %d])\n' % (ground.__class__.__name__, ground.image_path ,ground.rect.width))
+                    file.write('platform.set_possition(%d, %d)\n' % (ground.rect.x, ground.rect.y))
+                    file.write('self.ground_list.add(platform)\n')
+                    file.write('\n')
 
     def _write_enemies(self):
         with open(self.file, 'a') as file:
@@ -297,6 +309,25 @@ class Grass_ground_static(Static_image):
         super().on_click(pos, self.image_path, int(input("Введите ширину платформы (максимум - 1000) = ")))
 
 
+class Sand_ground_static(Grass_ground_static):
+
+    def __init__(self, list_type, level):
+        super().__init__(list_type, level)
+        self.image = pygame.image.load(os.path.join('.//redactor//images//sand.png')).convert()
+        self.rect.x = 1110
+        self.rect.y = 20
+        self.image_path = './/Grass//Sand_walls.png'
+
+class Wood_ground_static(Grass_ground_static):
+    def __init__(self, list_type, level):
+        super().__init__(list_type, level)
+        self.image = pygame.image.load(os.path.join('.//redactor//images//wood.png')).convert()
+        self.rect.x = 1180
+        self.rect.y = 20
+        self.image_path = './/Grass//wood_walls.png'
+        self.object = Small_ground
+
+
 class Grass_ground_hover(Static_image):
     def __init__(self, list_type, level):
         image = './/redactor//images//grass_hover.png'
@@ -355,6 +386,17 @@ class Health_potion_static(Static_image):
         super().__init__(list_type, image, class_type, level)
         self.rect.x = 1010
         self.rect.y = 270
+
+    def on_click(self, pos):
+        super().on_click(pos, self.level)
+
+class Ladder_static(Static_image):
+    def __init__(self, list_type, level):
+        image = './/redactor//images//ladder.png'
+        class_type = Ladder
+        super().__init__(list_type, image, class_type, level)
+        self.rect.x = 1010
+        self.rect.y = 400
 
     def on_click(self, pos):
         super().on_click(pos, self.level)

@@ -1,5 +1,5 @@
 from constants import *
-from math import sqrt
+from math import sqrt, atan, cos, sin, degrees
 import pygame
 import os
 
@@ -114,18 +114,26 @@ class Projectile(Spell):
 
     speed_y = 0
     speed_x = 0
+    music_file = './/sound//Sound_exf//shot.wav'
 
     def __init__(self, caster, sprite_image, direction):
         super().__init__()
         self.caster = caster
-        self.animation = self._get_animation(sprite_image, self._get_direction(direction))
+        y = 64 * 4
+        sprite_list = [(0, y, 64, 64),
+                       (64, y, 64, 64),
+                       (64 * 2, y, 64, 64),
+                       (64 * 3, y, 64, 64),
+                       (64 * 4, y, 64, 64),
+                       (64 * 5, y, 64, 64),
+                       (64 * 6, y, 64, 64),
+                       (64 * 7, y, 64, 64)
+                       ]
+
+        self.animation = self._get_animation(sprite_image, sprite_list)
         self.image = self.animation[0]
         self.rect = self.image.get_rect()
-
-        if 'R' in self.direction:
-            self.rect.left = self.caster.rect.right
-        else:
-            self.rect.right = self.caster.rect.left
+        self.speed_x, self.speed_y = self._mouse_shot()
 
     def _get_direction(self, direction):
         self.direction = direction
@@ -165,17 +173,43 @@ class Projectile(Spell):
                         (64 * 6, y, 64, 64),
                         (64 * 7, y, 64, 64)
                            ]
-        return  sprite_list
+        return sprite_list
+
+    def _mouse_shot(self):
+        pos = pygame.mouse.get_pos()
+
+        if pos[0] >= self.caster.rect.x :
+            self.direction = 'R'
+            original_x = self.caster.rect.right
+            was_x = 1
+            was_y = 1
+        else:
+            self.direction = 'L'
+            original_x = self.caster.rect.left
+            was_x = -1
+            was_y = -1
+
+        x = pos[0] - original_x
+        y = pos[1] - self.caster.rect.y - 20
+
+        a = atan(y/x)
+
+        x = 15 * cos(a) * was_x
+        y = 15 * sin(a) * was_y
+
+        if x != 0:
+            self.animation = [pygame.transform.rotate(i, degrees(-1*atan(y/x))) for i in self.animation]
+        else:
+            self.animation = [pygame.transform.rotate(i, degrees(-90)) for i in self.animation]
+        self.rect.x = original_x
+        return x, y
 
     def _move_x(self):
         self.rect.x += self.speed_x
 
-        pos = self.rect.x + self.caster.ground.shift
+        pos = self.rect.x
         frame = (pos // 15) % len(self.animation)
         self.image = self.animation[frame]
-
-        if pygame.sprite.spritecollide(self, self.caster.ground.ground_list, False):
-            self.kill()
 
     def _on_hit(self, hits):
         if hits:
@@ -186,16 +220,15 @@ class Projectile(Spell):
                 self.kill()
 
     def _check_if_should_end(self):
-        if self.rect.x == self.range:
+        self.duration -=1
+        if self.duration <=0:
             self.kill()
+            del self
 
     def update(self):
         super().update()
 
         self.rect.y += self.speed_y
-
-        if pygame.sprite.spritecollide(self, self.caster.ground.ground_list, False):
-            self.kill()
 
         hits = pygame.sprite.spritecollide(self, self.caster.ground.enemy_list, False)
 
@@ -212,15 +245,11 @@ class Projectile(Spell):
 
 class Fireball(Projectile):
 
-    mana_cost = 1
-
     def __init__(self, caster, direction):
         sprite_image = pygame.image.load(os.path.join('.//magic_pack//sheets//fireball_0.png')).convert()
-        self.standart_speed = 10
-        self.diagonal_speed = int(sqrt(pow(self.standart_speed, 2) / 2))
         self.damage = 5
         super().__init__(caster, sprite_image, direction)
-        self.range = self.rect.x + self.speed_x * 40
+        self.duration = 60
         self.rect.y = self.caster.rect.top - 20
 
 
