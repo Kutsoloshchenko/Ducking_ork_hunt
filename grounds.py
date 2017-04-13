@@ -79,5 +79,8 @@ class Grass_ground(Ground):
         print(width)
         super().__init__(image, width)
 
-
+class Ladder(Ground):
+    def __init__(self):
+        image = './/Grass//ladder.png'
+        super().__init__(settings=(image, 150), ground_width=500)
 

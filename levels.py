@@ -3,9 +3,8 @@ import os
 from constants import *
 from grounds import *
 from characters import Bandit, Witch, NPC
-from pick_objects import Health_potion, Mana_potion, Quest_object, Ladder
+from pick_objects import Health_potion, Mana_potion, Quest_object
 from quest_menu import *
-from random import choice
 
 
 class Level:
@@ -91,9 +90,14 @@ class Training_ground(Level):
         platform.set_possition(2159, 1343)
         self.ground_list.add(platform)
 
-        item = Ladder([self])
+        item = Ladder()
         item.set_possition(1580, 1627)
+        self.ground_list.add(item)
+
+        item = Health_potion([self])
+        item.set_possition(515, 2175)
         self.items_list.add(item)
+
 
         platform = Ground([".//Grass//Sand_walls.png", 1000])
         platform.set_possition(2000, 2233)
@@ -130,6 +134,11 @@ class Training_ground(Level):
         platform = Small_ground([".//Grass//wood_walls.png", 100])
         platform.set_possition(1979, 1486)
         self.ground_list.add(platform)
+
+        self.player.set_possition(0, 0)
+        npc = NPC([self, ".//redactor//null_quest"])
+        npc.set_possition(1830, 1564)
+        self.use_list.add(npc)
 
         self.player.set_possition(173, 301)
 

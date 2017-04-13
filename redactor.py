@@ -4,7 +4,7 @@ from constants import *
 from grounds import *
 from levels import Level
 from characters import Bandit, Witch, Hero, NPC
-from pick_objects import Mana_potion, Health_potion, Ladder
+from pick_objects import Mana_potion, Health_potion
 
 
 class Redactor(Level):
@@ -23,7 +23,7 @@ class Redactor(Level):
         self.image = pygame.image.load(os.path.join('.//redactor//images//grid.bmp')).convert()
         self.image_coord = [0, 0]
         self.menu = pygame.image.load(os.path.join('.//redactor//images//menu2.jpg')).convert()
-
+        pygame.mouse.set_visible(True)
         self.speed_x, self.speed_y = 0, 0
 
         self.shift_x = 0

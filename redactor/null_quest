@@ -1,4 +1,4 @@
-Image = .//characters//Ahriman.png
+Image = .//characters//DC_-_Wizard_Sprite.png
 Task = kill
 Object = Witch([self.ground])
 Object X = 250

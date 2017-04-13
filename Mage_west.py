@@ -14,32 +14,29 @@ def main():
 
     pygame.display.set_caption("Wizard West^ Spellslinger")
 
-    y = 214
-    x = 140
-
-    sprite_list = [(0, 0, 32, 47),
-                   (32, 97, 32, 47),
-                   (64, 97, 32, 47),
-                   (96, 97, 32, 47)
-                   ]
+    x = 180
+    y = 237
 
     sprite_list = [(x * 0, y * 0, x, y),
-                   (x * 1, y * 1, x, y),
-                   (x * 2, y * 1, x, y),
-                   (x * 3, y * 1, x, y),
-                   (x * 4, y * 1, x, y),
-                   (x * 5, y * 1, x, y),
-                   (x * 6, y * 1, x, y),
-                   (x * 7, y * 1, x, y),
-                   (x * 8, y * 1, x, y),
-                   (x * 9, y * 1, x, y),
-                   (x * 10, y * 1, x, y),
-                   (x * 11, y * 1, x, y)
+                       (x * 1, y * 0, x, y),
+                       (x * 2, y * 0, x, y),
+                       (x * 3, y * 0, x, y),
+                       (x * 4, y * 0, x, y),
+                       (x * 5, y * 0, x, y),
+                       (x * 6, y * 0, x, y),
+                       (x * 7, y * 0, x, y),
+                       (x * 8, y * 0, x, y),
+                       (x * 9, y * 0, x, y),
+                       (x * 10, y * 0, x, y),
+                       (x * 11, y * 0, x, y)
                    ]
 
-    hero = Hero('.//characters//DC_si1.png', sprite_list)
 
+    hero = Hero('.//characters//E_2.png', sprite_list)
 
+    image = pygame.image.load(os.path.join('.//characters//E_2_standing.png')).convert()
+    image.set_colorkey(BLACK)
+    hero.standing_ani = [image, pygame.transform.flip(image, True, False)]
 
     level_list = []
     level_list.extend([Training_ground(hero)])
@@ -64,7 +61,7 @@ def main():
                 break
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                hero.cast(Fireball, 'R')
+                hero.cast(Fireball)
 
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_r:
@@ -96,7 +93,7 @@ def main():
                 elif event.key == pygame.K_q:
                     hero.drink_potion('mana')
                 elif event.key == pygame.K_e:
-                    hero.drink_potion('health')
+                    hero.drink_potion()
                 elif event.key == pygame.K_RETURN:
                     hero.use(clock, screen)
 

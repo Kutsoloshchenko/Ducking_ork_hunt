@@ -116,7 +116,7 @@ class Projectile(Spell):
     speed_x = 0
     music_file = './/sound//Sound_exf//shot.wav'
 
-    def __init__(self, caster, sprite_image, direction):
+    def __init__(self, caster, sprite_image, pos):
         super().__init__()
         self.caster = caster
         y = 64 * 4
@@ -133,7 +133,9 @@ class Projectile(Spell):
         self.animation = self._get_animation(sprite_image, sprite_list)
         self.image = self.animation[0]
         self.rect = self.image.get_rect()
-        self.speed_x, self.speed_y = self._mouse_shot()
+        self.direction = 'R'
+        self.speed_x, self.speed_y = self._mouse_shot(pos)
+
 
     def _get_direction(self, direction):
         self.direction = direction
@@ -175,10 +177,9 @@ class Projectile(Spell):
                            ]
         return sprite_list
 
-    def _mouse_shot(self):
-        pos = pygame.mouse.get_pos()
+    def _mouse_shot(self, pos):
 
-        if pos[0] >= self.caster.rect.x :
+        if pos[0] >= self.caster.rect.x:
             self.direction = 'R'
             original_x = self.caster.rect.right
             was_x = 1
@@ -246,10 +247,11 @@ class Projectile(Spell):
 
 class Fireball(Projectile):
 
-    def __init__(self, caster, direction):
+    def __init__(self, caster):
         sprite_image = pygame.image.load(os.path.join('.//magic_pack//sheets//fireball_0.png')).convert()
         self.damage = 5
-        super().__init__(caster, sprite_image, direction)
+        pos = pygame.mouse.get_pos()
+        super().__init__(caster, sprite_image, pos)
         self.duration = 60
         self.rect.y = self.caster.rect.top - 20
 
@@ -326,12 +328,14 @@ class Enemy_projectile(Projectile):
 
 
 class Enemy_Fireball(Enemy_projectile):
-    def __init__(self, caster, direction, hero):
+    def __init__(self, caster, hero):
         sprite_image = pygame.image.load(os.path.join('.//magic_pack//sheets//fireball_0.png')).convert()
         self.standart_speed = 10
         self.hero = hero
         self.diagonal_speed = int(sqrt(pow(self.standart_speed, 2) / 2))
         self.damage = 5
-        super().__init__(caster, sprite_image, direction)
+        self.duration = 500
+        pos = (self.hero.rect.x, self.hero.rect.y)
+        super().__init__(caster, sprite_image, pos)
         self.range = self.rect.x + self.speed_x * 40
         self.rect.y = self.caster.rect.top - 20
