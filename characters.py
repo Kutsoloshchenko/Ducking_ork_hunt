@@ -475,7 +475,7 @@ class Witch(Enemy):
         else:
             self.direction = 'L'
 
-        self.ground.projectile_list.add(Enemy_Fireball(self, self.ground.player))
+        self.ground.projectile_list.add(Enemy_Fireball(self))
         self.cool_down = 20
         self.attack_mode = 0
 

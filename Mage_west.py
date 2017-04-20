@@ -3,7 +3,7 @@ import os
 from constants import *
 from characters import Hero, Bandit
 from grounds import *
-from spells import Fire_lion, Fireball, Ice_spikes
+from spells import Fire_lion, Fireball
 from levels import Training_ground
 
 def main():
@@ -57,10 +57,7 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     gameExit = True
 
-            if hero.inactive_time:
-                break
-
-            elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN:
                 hero.cast(Fireball)
 
             elif event.type == pygame.KEYDOWN:
