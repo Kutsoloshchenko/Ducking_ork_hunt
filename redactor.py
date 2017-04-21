@@ -391,6 +391,7 @@ class Health_potion_static(Static_image):
     def on_click(self, pos):
         super().on_click(pos, self.level)
 
+
 class Ladder_static(Static_image):
     def __init__(self, list_type, level):
         image = './/redactor//images//ladder.png'

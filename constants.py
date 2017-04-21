@@ -70,3 +70,22 @@ class Animated_sprite(pygame.sprite.Sprite):
         # Возвращаем наши два списка
         return (walking_frames_r, walking_frames_l)
     
+
+class Scene:
+    """Это псевдокласс, который закладывает основные функции для контроля экрана и считывания действий игрока.
+    От него будут наследоватся пункты меню, уровни и диалоги"""
+
+    def update(self):
+        """Обновление всех елементов которые присутствуют на уровне, меню или диалоге"""
+        for group in self.groups:
+            group.update()
+
+
+    def draw(self, screen):
+        """Тут мы рисуем все елементы которые надо отрисовывать на уровне, в пункте меню, в диалоге и т.д."""
+        for group in self.groups:
+            group.draw(screen)
+
+    def player_controls(self):
+        """Тут мы задаем при нажатии на какие кнопки, какие события будут происходить"""
+        pass

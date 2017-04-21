@@ -5,11 +5,12 @@ import os
 from constants import *
 from grounds import *
 from characters import Bandit, Witch, NPC
-from pick_objects import Health_potion, Mana_potion, Quest_object
+from pick_objects import Health_potion
+from spells import  Fire_lion, Fireball
 from quest_menu import *
 
 
-class Level:
+class Level(Scene):
     """Суперкласс уровня. Создает все необходимые функции для того что бы уровень работал, а мы просто его наполняем"""
 
     def __init__(self, player, file=None):
@@ -30,6 +31,11 @@ class Level:
         self.player = player
         # Это бэграунд уровня
         self.background = None
+
+        # записываем все елементы в словарик, что бы обновлять их одним скопом
+        self.groups = {'ground': self.ground_list, 'enemies': self.enemy_list,
+                       'projectile': self.projectile_list, 'items': self.items_list, 'usable': self.use_list}
+
         # А это его начальная позиция
         self.shift_x = 0
         self.shift_y = 0
@@ -46,26 +52,10 @@ class Level:
         self.shift_x += shift_x
         self.shift_y += shift_y
 
-        # А тут проходится по всем элементам на уровне и их смещает на нужную величину
-        for use in self.use_list:
-            use.rect.x += shift_x
-            use.rect.y += shift_y
-
-        for item in self.items_list:
-            item.rect.x += shift_x
-            item.rect.y += shift_y
-
-        for ground in self.ground_list:
-            ground.rect.x += shift_x
-            ground.rect.y += shift_y
-
-        for enemy in self.enemy_list:
-            enemy.rect.x += shift_x
-            enemy.rect.y += shift_y
-
-        for projectile in self.projectile_list:
-            projectile.rect.x += shift_x
-            projectile.rect.y += shift_y
+        for group in self.groups:
+            for element in group:
+                element.rect.x += shift_x
+                element.rect.y += shift_y
 
     def update(self):
         """Тут функция обновления всех елементов на уровне"""
@@ -73,21 +63,13 @@ class Level:
         # Вызываем функцию ревайва всех умерших врагов
         for enemy in self.dead_enemy_list:
                 enemy.revive()
-        # Апдейтим все елементы
-        self.items_list.update()
-        self.ground_list.update()
-        self.enemy_list.update()
-        self.projectile_list.update()
-        self.use_list.update()
+        # Апдейтим все елементы, из родительского класса
+        super().update()
 
     def draw(self, screen):
         """Функция рисования всех елментов и бэкграунта"""
         screen.blit(self.background, (self.shift_x, self.shift_y))
-        self.ground_list.draw(screen)
-        self.enemy_list.draw(screen)
-        self.projectile_list.draw(screen)
-        self.items_list.draw(screen)
-        self.use_list.draw(screen)
+        super().draw(screen)
 
     def _play(self, file):
         """функция которая запускает проигрышь музыки. Наверное лучше миксер вывести не на уровень а на игру в целом, н
@@ -95,6 +77,41 @@ class Level:
         pygame.mixer.init()
         self.m_player = pygame.mixer.Sound
         self.m_player.play(file, loops=-1)
+
+    def player_controls(self, screen, clock):
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return True
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.player.cast(Fireball)
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    self.player.reload()
+                elif event.key == pygame.K_a:
+                    self.player.move_left()
+                elif event.key == pygame.K_d:
+                    self.player.move_right()
+                elif event.key == pygame.K_w:
+                    self.player.move_up()
+                elif event.key == pygame.K_s:
+                    self.player.fall()
+                elif event.key == pygame.K_LSHIFT:
+                    self.player.cast(Fire_lion)
+                elif event.key == pygame.K_e:
+                    self.player.drink_potion()
+                elif event.key == pygame.K_RETURN:
+                    self.player.use(clock, screen)
+
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_a or event.key == pygame.K_d:
+                    self.player.stop()
+                elif event.key == pygame.K_w:
+                    self.player.stop_y()
+
+        return False
 
 
 class Training_ground(Level):

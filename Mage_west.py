@@ -77,37 +77,7 @@ def main():
 
         # тут у нас проверяются нажатыве кнопки игроком, и в зависимости от них что то происходит.
         # Это надо переносить на уровень, и нам тогда будет легче менять управление в диалогах, меню и обычной игре
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    gameExit = True
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                hero.cast(Fireball)
-
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    hero.reload()
-                elif event.key == pygame.K_a:
-                    hero.move_left()
-                elif event.key == pygame.K_d:
-                    hero.move_right()
-                elif event.key == pygame.K_w:
-                    hero.move_up()
-                elif event.key == pygame.K_s:
-                    hero.fall()
-                elif event.key == pygame.K_LSHIFT:
-                    hero.cast(Fire_lion)
-                elif event.key == pygame.K_e:
-                    hero.drink_potion()
-                elif event.key == pygame.K_RETURN:
-                    hero.use(clock, screen)
-
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_a or event.key == pygame.K_d:
-                    hero.stop()
-                elif event.key == pygame.K_w:
-                    hero.stop_y()
+        gameExit = current_level.player_control(screen, clock)
 
         # Тут у нас идут обновления и отрисовки. Тогже надо вынести на уровень наверное,
         # что бы главный луп просто переводил нас с уровня на уровень в зависимости от надобности.

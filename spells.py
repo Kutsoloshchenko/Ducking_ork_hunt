@@ -1,7 +1,7 @@
-"""Тут у нас заклинания которіе наносят урон"""
+"""Тут у нас заклинания которые наносят урон"""
 
 from constants import *
-from math import sqrt, atan, cos, sin, degrees
+from math import atan, cos, sin, degrees
 import pygame
 import os
 
@@ -33,7 +33,7 @@ class Spell(Animated_sprite):
 
         self._move_x()
 
-        hits = pygame.sprite.spritecollide(self, self.caster.ground.enemy_list, False)
+        hits = pygame.sprite.spritecollide(self, self.caster.ground.groups['enemies'], False)
 
         self._on_hit(hits)
 
@@ -185,8 +185,8 @@ class Projectile(Spell):
     def _check_if_should_end(self):
         """Заклинание действует определенное кол во фреймов. Єта функция каждій фрейм отнимает один от времени.
         Когда достигаеит нуля - убирает заклинание"""
-        self.duration -=1
-        if self.duration <=0:
+        self.duration -= 1
+        if self.duration <= 0:
             self.kill()
             del self
 
@@ -196,13 +196,13 @@ class Projectile(Spell):
 
         self.rect.y += self.speed_y
 
-        hits = pygame.sprite.spritecollide(self, self.caster.ground.enemy_list, False)
+        hits = pygame.sprite.spritecollide(self, self.caster.ground.groups['enemies'], False)
 
         self._on_hit(hits)
 
 
 class Fireball(Projectile):
-    """Заклинание типа фаербол. Обічній проджектайл со своими свойствами и картинкой"""
+    """Заклинание типа фаербол. Обычный проджектайл со своими свойствами и картинкой"""
 
     def __init__(self, caster):
 
@@ -243,9 +243,10 @@ class Fire_lion(Shotgun):
 
 class Enemy_projectile(Projectile):
     """Специальный класс, который перезаписывает функцию обновления у вражеских спелов.
-    После этого они работают точно так же как и обычные, но при этом демажат игрока"""
+    После этого они работают точно так же как и обычные, но при этом дамажат игрока"""
     def update(self):
         self._move_x()
+        self.rect.y += self.speed_y
 
         hits = pygame.sprite.collide_rect(self, self.caster.ground.player)
         if hits:

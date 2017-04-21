@@ -68,7 +68,7 @@ class Character(Animated_sprite):
         """Проверяем, стоит ли персонаж на земле. Перемещаем его на два пикселя вниз, сохраняем все столкновения
            и возвращаем персонажа на место. Возвращаем список (а вот если он пуст, то мы падаем)"""
         self.rect.y += 2
-        ground_hit_list = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
+        ground_hit_list = pygame.sprite.spritecollide(self, self.ground.groups['ground'], False)
         self.rect.y -= 2
 
         return ground_hit_list
@@ -106,7 +106,7 @@ class Character(Animated_sprite):
 
     def move_up(self):
         """Функция передвижения вверх. Если стоит возле лестницу, то лезет вверх. Если нет лестницы, то прыгает"""
-        collisions_with_ladder = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
+        collisions_with_ladder = pygame.sprite.spritecollide(self, self.ground.groups['ground'], False)
         for hit in collisions_with_ladder:
             if isinstance(hit, Ladder):
                 self.climbing = True
@@ -119,7 +119,7 @@ class Character(Animated_sprite):
         """Базовая функция проверки столкновения игрока с предметами на экране"""
 
         # Получаем список всех елементов, из списка земли данного уровня, с которыми столкнулся персонаж
-        collisions_with_y = pygame.sprite.spritecollide(self, self.ground.ground_list, False)
+        collisions_with_y = pygame.sprite.spritecollide(self, self.ground.groups['ground'], False)
 
         # И теперь по каждому элементу проходимся, и смотрим что это за элемент и как на это реагировать
         for hit in collisions_with_y:
@@ -232,7 +232,7 @@ class Enemy(Character):
         self.revive_counter += 1
         if self.revive_counter == self.revive_time:
             self.ground.dead_enemy_list.remove(self)
-            self.ground.enemy_list.add(self)
+            self.ground.groups['enemies'].add(self)
             self.reload()
             self.HP = self.start_HP
             self.revive_counter = 0
@@ -272,7 +272,7 @@ class Enemy(Character):
             self.rect.bottom += 40
 
             # Если мы не зарегестрировали столкновения с каким либо обьектом - то разворачиваемся
-            if not pygame.sprite.spritecollide(self, self.ground.ground_list, False):
+            if not pygame.sprite.spritecollide(self, self.ground.groups['ground'], False):
                 self.speed_x *= -1
 
             # И потом возвращаемся на место.
@@ -282,7 +282,7 @@ class Enemy(Character):
         elif self.speed_x < 0 and self.speed_y == 0:
             self.rect.left -= 10
             self.rect.bottom += 40
-            if not pygame.sprite.spritecollide(self, self.ground.ground_list, False):
+            if not pygame.sprite.spritecollide(self, self.ground.groups['ground'], False):
                 self.speed_x *= -1
             self.rect.left += 10
             self.rect.bottom -= 40
@@ -544,7 +544,7 @@ class Hero(Character):
         if self.bullets_num > 0 and self.spell_cd == 0:
             self.bullets_num -= 1
             self.spell_cd = 10
-            self.ground.projectile_list.add(spell(self))
+            self.ground.groups['projectile'].add(spell(self))
             file = self.ground.m_player(spell.music_file)
             self.ground.m_player.play(file)
 
@@ -600,14 +600,14 @@ class Hero(Character):
     def use(self, clock, screen):
         """Функция использования НПС (в будущем и другие вещи). Если столкнулся с НПС,
             то передает ему инфу про чеса и экран игры, что бы тот мог запустить диалог"""
-        hits = pygame.sprite.spritecollide(self, self.ground.use_list, False)
+        hits = pygame.sprite.spritecollide(self, self.ground.groups['use'], False)
         for hit in hits:
             hit.use(clock, screen)
 
     def pick_up(self):
         """Функция подбора всяких обьектов. Если стулкнулся, и если у тебя таких обьектов не больше 9,
             то добавляет в скиски. После этого убирает обьект с экранна"""
-        hits = pygame.sprite.spritecollide(self, self.ground.items_list, False)
+        hits = pygame.sprite.spritecollide(self, self.ground.groups['items'], False)
 
         for hit in hits:
             if isinstance(hit, Health_potion) and self.health_potions < 9:
@@ -706,9 +706,9 @@ class NPC(Character):
         exec('self.object = %s' % self.target_object)
         self.object.set_possition(self.object_coordinates[0], self.object_coordinates[1])
         if self.task == 'kill':
-            self.ground.enemy_list.add(self.object)
+            self.ground.groups['enemies'].add(self.object)
         else:
-            self.ground.items_list.add(self.object)
+            self.ground.groups['items'].add(self.object)
 
     def use(self, clock, screen):
         """Запускаем квестовый диалог, и передаем ему управление экраном и временем"""
@@ -720,7 +720,7 @@ class NPC(Character):
             if self.ground.player.health_potions < 9:
                 self.ground.player.health_potions += 1
             else:
-                self.ground.items_list.add(Health_potion(self.ground, self.rect.x-20, self.rect.y))
+                self.ground.groups['items'].add(Health_potion(self.ground, self.rect.x-20, self.rect.y))
             self.quest_completed = 1
 
     def _get_text_from_txt(self, file):
