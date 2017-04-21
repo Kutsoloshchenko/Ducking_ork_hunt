@@ -2,17 +2,18 @@ import pygame
 import os
 from constants import *
 from grounds import *
-from characters import Bandit, Witch, Ahriman_mage, Elf_girl
+from characters import Bandit, Witch, NPC
 from pick_objects import Health_potion, Mana_potion, Quest_object
 from quest_menu import *
 
 
 class Level:
     #Level superclass
-    def __init__(self, player):
+    def __init__(self, player,file = None):
         # list of ground, enemies, and adding player
         self.ground_list = pygame.sprite.Group()
         self.enemy_list = pygame.sprite.Group()
+        self.dead_enemy_list = []
         self.character_list = pygame.sprite.Group()
         self.projectile_list = pygame.sprite.Group()
         self.items_list = pygame.sprite.Group()
@@ -22,28 +23,40 @@ class Level:
         # This is background
         self.background = None
         # Level settings
-        self.shift = 0
-        self.world_limit = -1000
+        self.shift_x = 0
+        self.shift_y = 0
 
-    def shift_level(self, shift_x):
-        self.shift += shift_x
+        if file:
+            self._play(file)
+
+    def shift_level(self, shift_x, shift_y):
+        self.shift_x += shift_x
+        self.shift_y += shift_y
 
         for use in self.use_list:
             use.rect.x += shift_x
+            use.rect.y += shift_y
 
         for item in self.items_list:
             item.rect.x += shift_x
+            item.rect.y += shift_y
 
         for ground in self.ground_list:
             ground.rect.x += shift_x
+            ground.rect.y += shift_y
 
         for enemy in self.enemy_list:
             enemy.rect.x += shift_x
+            enemy.rect.y += shift_y
 
         for projectile in self.projectile_list:
             projectile.rect.x += shift_x
+            projectile.rect.y += shift_y
 
     def update(self):
+        for i in self.dead_enemy_list:
+                i.revive()
+
         self.items_list.update()
         self.ground_list.update()
         self.enemy_list.update()
@@ -51,133 +64,137 @@ class Level:
         self.use_list.update()
 
     def draw(self, screen):
-        screen.fill(self.background)
+        screen.blit(self.background, (self.shift_x, self.shift_y))
         self.ground_list.draw(screen)
         self.enemy_list.draw(screen)
         self.projectile_list.draw(screen)
         self.items_list.draw(screen)
         self.use_list.draw(screen)
 
-    def _get_text_from_txt(self, file):
-        file = open(file, 'r')
-        file_read = file.read()
-        file.close()
-
-        file = file_read.split('***')
-        file_not_taken = file[0:2]
-        file_taken = file[2:4]
-        file_complete = file[4:]
-
-        not_taken = self._get_object_from_list(file_not_taken)
-        taken = self._get_object_from_list(file_taken)
-        comleated = self._get_object_from_list(file_complete)
-
-        for el in not_taken:
-            for element in el:
-                if not element:
-                    el.remove(element)
-
-        for el in taken:
-            for element in el:
-                if not element:
-                    el.remove(element)
-
-        for el in comleated:
-            for element in el:
-                if not element:
-                    el.remove(element)
-
-        return not_taken, taken, comleated
-
-    def _get_object_from_list(self, list):
-        text = list[0].split('\n')
-        text = [i.lstrip() for i in text]
-        answers = list[1].split('\n')
-        return_answers = []
-        for i in answers:
-            answers_list = i.split('@')
-            temp = []
-            for answer in answers_list:
-                answer_from_func = self._get_class_from_answer(answer)
-                if answer_from_func:
-                    temp.append(self._get_class_from_answer(answer))
-            return_answers.append(temp)
-
-        return [text, return_answers]
-
-    def _get_class_from_answer(self, answer):
-        answer_line = answer.split('#')
-        answer_line = [i.lstrip() for i in answer_line]
-        if 'Confirm' in answer_line[0]:
-            return Confirm(answer_line[1], int(answer_line[2]))
-        elif 'Answer' in answer_line[0]:
-            return Answer(answer_line[1], int(answer_line[2]))
-        elif 'Exit' in answer_line[0]:
-            return Exit(answer_line[1])
-        elif 'Complete_quest' in answer_line[0]:
-            return Complete_quest(answer_line[1], int(answer_line[2]), int(answer_line[3]))
-        elif 'Success' in answer_line[0]:
-            return Success(answer_line[1])
-
+    def _play(self, file):
+        pygame.mixer.init()
+        self.m_player = pygame.mixer.Sound
+        self.m_player.play(file, loops=-1)
 
 class Training_ground(Level):
     def __init__(self, player):
-        Level.__init__(self, player)
-        self.background = SKY
+        file = './/sound//Music//sound.wav'
+        file = pygame.mixer.Sound(file = file)
+        Level.__init__(self, player, file)
+        self.level_size = (3072, 2304)
+        self.background = pygame.image.load(os.path.join('.//BackGround//sample.jpg')).convert()
 
-        wall = Ground('.//Grass//stonewall.png')
-        wall.set_possition(0, 0)
-        self.ground_list.add(wall)
+        # Вставлять то что в файле ниже, перед этим все удалить
 
-        wall = Ground('.//Grass//Grass_wals.png')
-        wall.set_possition(0, SCREEN_HEIGHT-70)
-        self.ground_list.add(wall)
-
-        wall = Ground('.//Grass//Grass_wals.png')
-        wall.set_possition(1600, SCREEN_HEIGHT - 70)
-        self.ground_list.add(wall)
-
-        platform = Ground('.//Grass//big_grass.png')
-        platform.set_possition(250, 185)
+        platform = Small_ground([".//Grass//wood_walls.png", 150])
+        platform.set_possition(2159, 1343)
         self.ground_list.add(platform)
 
+        item = Ladder()
+        item.set_possition(1580, 1627)
+        self.ground_list.add(item)
 
-        platform = Ground('.//Grass//block_grass.png')
-        platform.set_possition(480, SCREEN_HEIGHT - 210)
+        item = Health_potion([self])
+        item.set_possition(515, 2175)
+        self.items_list.add(item)
+
+
+        platform = Ground([".//Grass//Sand_walls.png", 1000])
+        platform.set_possition(2000, 2233)
         self.ground_list.add(platform)
 
-        platform = Ground('.//Grass//block_grass.png')
-        platform.set_possition(300, SCREEN_HEIGHT - 210)
+        platform = Ground([".//Grass//Sand_walls.png", 1000])
+        platform.set_possition(1000, 2233)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((0, 0), (280, 400), [0, -2], self, self.character_list, './/Grass//block_grass.png')
-        platform.set_possition(130, 344)
+        platform = Small_ground([".//Grass//wood_walls.png", 600])
+        platform.set_possition(1538, 1113)
         self.ground_list.add(platform)
 
-        platform = Hover_ground((700, 1300), (0, 0), [2, 0], self, self.character_list, './/Grass//block_grass.png')
-        platform.set_possition(700, 185)
+        platform = Small_ground([".//Grass//wood_walls.png", 600])
+        platform.set_possition(1537, 1642)
         self.ground_list.add(platform)
 
-        platform = Ground('.//Grass//small_grass.png')
-        platform.set_possition(1450, 250)
+        platform = Ground([".//Grass//Sand_walls.png", 1000])
+        platform.set_possition(0, 2233)
         self.ground_list.add(platform)
 
-        self.items_list.add(Health_potion(self, 200, 200))
-        self.items_list.add(Mana_potion(self, 1800, 500))
-        gem = Quest_object(self, 300, 200)
-        self.items_list.add(gem)
+        platform = Small_ground([".//Grass//wood_walls.png", 175])
+        platform.set_possition(1364, 1792)
+        self.ground_list.add(platform)
 
-        witch = Witch(self, (750, SCREEN_HEIGHT-150, 400))
+        platform = Small_ground([".//Grass//wood_walls.png", 100])
+        platform.set_possition(1329, 1944)
+        self.ground_list.add(platform)
 
-        self.enemy_list.add(witch)
-        self.enemy_list.add(Bandit(self, (400, 135, 400)))
+        platform = Small_ground([".//Grass//wood_walls.png", 100])
+        platform.set_possition(1175, 2096)
+        self.ground_list.add(platform)
 
-        file = os.path.join('.//quests//ahriman_quest')
-        not_taken, taken, comleated = self._get_text_from_txt(file)
-        quest_npc = Ahriman_mage(self, witch, (1600, 200), Mana_potion, 'kill', not_taken, taken, comleated)
-        self.use_list.add(quest_npc)
+        platform = Small_ground([".//Grass//wood_walls.png", 100])
+        platform.set_possition(1979, 1486)
+        self.ground_list.add(platform)
 
-        file = os.path.join('.//quests//forest_elf_quest')
-        not_taken, taken, comleated = self._get_text_from_txt(file)
-        quest_npc = Elf_girl(self, gem, (2000, 200), Health_potion, 'bring', not_taken, taken, comleated)
-        self.use_list.add(quest_npc)
+        self.player.set_possition(0, 0)
+        npc = NPC([self, ".//redactor//null_quest"])
+        npc.set_possition(1830, 1564)
+        self.use_list.add(npc)
+
+        self.player.set_possition(173, 301)
+
+
+
+
+class second_lvl(Level):
+    def __init__(self, player):
+        file = './/sound//Music//sound.wav'
+        file = pygame.mixer.Sound(file = file)
+        Level.__init__(self, player, file)
+        self.background = pygame.image.load(os.path.join('.//redactor//images//sample.jpg')).convert()
+
+
+        platform = Small_ground([".//Grass//wood_walls.png", 150])
+        platform.set_possition(19, 374)
+        self.ground_list.add(platform)
+
+        self.player.set_possition(39, 317)
+        platform = Ground([".//Grass//Sand_walls.png", 1000])
+        platform.set_possition(0, 541)
+        self.ground_list.add(platform)
+
+        self.player.set_possition(0, 0)
+        enemy = Bandit([self])
+        enemy.set_possition(572, 483)
+        enemy.get_boundaries(200)
+        self.enemy_list.add(enemy)
+
+        enemy = Bandit([self])
+        enemy.set_possition(807, 248)
+        enemy.get_boundaries(150)
+        self.enemy_list.add(enemy)
+
+        item = Health_potion([self])
+        item.set_possition(924, 275)
+        self.items_list.add(item)
+
+        item = Health_potion([self])
+        item.set_possition(552, 505)
+        self.items_list.add(item)
+
+        platform = Small_ground([".//Grass//wood_walls.png", 175])
+        platform.set_possition(9, 372)
+        self.ground_list.add(platform)
+
+        platform = Small_ground([".//Grass//wood_walls.png", 200])
+        platform.set_possition(212, 425)
+        self.ground_list.add(platform)
+
+        platform = Small_ground([".//Grass//wood_walls.png", 270])
+        platform.set_possition(700, 316)
+        self.ground_list.add(platform)
+
+        platform = Small_ground([".//Grass//wood_walls.png", 300])
+        platform.set_possition(686, 427)
+        self.ground_list.add(platform)
+
+        self.player.set_possition(39, 317)

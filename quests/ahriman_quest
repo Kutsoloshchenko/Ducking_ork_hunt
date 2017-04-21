@@ -1,3 +1,11 @@
+Image = .//characters//Ahriman.png
+Task = kill
+Object = Witch([self.ground])
+Object X = 250
+Object y = 350
+Reward = Health_potion
+Name = Ahriman
+***
 Hello lad! Do you wanna do some witch hunting?
 There is witch in this woods. If you kill her,&i will give you a mana potion
 The witch needs to die! She just has to!

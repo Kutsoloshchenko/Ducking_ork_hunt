@@ -4,17 +4,19 @@ from constants import *
 from grounds import Hover_ground
 
 
-class Pickappble_object(pygame.sprite.Sprite):
-    def __init__(self, ground, image, x, y):
+class Pickappble_object(Animated_sprite):
+    """Базовый класс всех елементов которые можно поднимать"""
+    def __init__(self, ground, image):
+        """Инициализирует обьект, придает ему нулевую скорость, и получает изображение"""
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(os.path.join(image)).convert()
         self.image.set_colorkey(BLACK)
         self.rect = self.image.get_rect()
-        self.rect.x, self.rect.y = x, y
         self.speed_y = 0
         self.ground = ground
 
     def update(self):
+        """По сути следит за тем что бы предмет упал если он будет висеть в воздухе"""
         self.gravity()
         self.rect.y += self.speed_y
 
@@ -31,6 +33,8 @@ class Pickappble_object(pygame.sprite.Sprite):
                 self.rect.x += hit.speed[0]
 
     def gravity(self):
+        """Точно такая же гравитация как у персонажей"""
+
         # Apply gravity, and make sure we have collision with any block we are staying at
         if self.speed_y == 0:
             self.speed_y = 2
@@ -38,18 +42,23 @@ class Pickappble_object(pygame.sprite.Sprite):
             self.speed_y += 0.35
 
 
+
 class Health_potion(Pickappble_object):
-    def __init__(self, ground, x, y):
-        image = './/items//pt1_test.png'
-        super().__init__(ground, image, x, y)
+    """Хэлс поушен. Получает картинку жизни просто"""
+    def __init__(self, ground):
+        image = './/items//whiskey.png'
+        super().__init__(ground[0], image)
 
 
 class Mana_potion(Pickappble_object) :
-    def __init__(self, ground, x, y):
+    """Мана поушен. Получает картинку манны просто"""
+    def __init__(self, ground):
         image = './/items//pt2_test.png'
-        super().__init__(ground, image, x, y)
+        super().__init__(ground[0], image)
+
 
 class Quest_object(Pickappble_object):
-    def __init__(self, ground, x, y):
-        image = './/items//hud_gem_green.png'
-        super().__init__(ground, image, x, y)
+    """Квестовый обьект. Получает картинку при инициплизации"""
+    def __init__(self, ground):
+        super().__init__(ground[0], ground[1])
+
