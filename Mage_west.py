@@ -1,5 +1,7 @@
 """Главный файл игры. Тут мы описываем само построение игры и как она идет"""
 
+# На работе рефакторинг я не делаю что бы ничего не сломать. Буду писать в коментах что тут надо сделать.
+
 import pygame
 import os
 from constants import *
@@ -8,14 +10,23 @@ from grounds import *
 from spells import Fire_lion, Fireball
 from levels import Training_ground
 
-def main():
 
+def main():
+    """Функция основной игры. Надо оформить в класс, и по сути дать ему заниматся только выбором уровня.
+    А сам уровень уже будет сканировать действия и все обновлять и рисовать."""
+
+    # Инициализируем движок игры
     pygame.init()
+
+    # создаем экран и задаем ему параметры
     size = [SCREEN_WIDTH, SCREEN_HEIGHT]
     screen = pygame.display.set_mode(size,pygame.FULLSCREEN)
 
+    # Устанавливаем название окна
     pygame.display.set_caption("Wizard West^ Spellslinger")
 
+    # Тут у нас создается игрок и его рисунки и спрайты.
+    # Это надо вынести в отдельный уровень создания героя, или если фигурка героя будет одна - то в лкасс героя
     x = 180
     y = 237
 
@@ -33,27 +44,39 @@ def main():
                        (x * 11, y * 0, x, y)
                    ]
 
-
+    # Тут продолжаем инициализировать героя и пилить костыли по его добавлению в игру.
+    # Этого быть не должно, все надо перенести или в создание персонажа, или в класс героя
     hero = Hero('.//characters//E_2.png', sprite_list)
 
+    # Добавляем стоящую анимацию. Это я вынесу в класс персонажа, что бы такие анимации были у всех врагов и так далее.
     image = pygame.image.load(os.path.join('.//characters//E_2_standing.png')).convert()
     image.set_colorkey(BLACK)
     hero.standing_ani = [image, pygame.transform.flip(image, True, False)]
 
+    # Создаем список уровней и наполняем его, всеми уровнями которые у нас есть.
+    # Думаю что лучше будет это сделать дикшенари, но посмотрим
     level_list = []
     level_list.extend([Training_ground(hero)])
 
+    # Устанавливаем текущий уровень
     level_number = 0
     current_level = level_list[level_number]
 
+    # Создаем активные элементы и добавдяем туда героя. Плюс даем герою ссылку на текущий уровень.
     active_elements = pygame.sprite.Group()
     hero.ground = current_level
+
     active_elements.add(hero)
+
+    # Создаем часы и токен окончания игры. Когда токен будет тру - игры выходит
     clock = pygame.time.Clock()
     gameExit = False
 
     while not gameExit:
+        # Собственно сам цикл игры. Пока он выполняется игра идет
 
+        # тут у нас проверяются нажатыве кнопки игроком, и в зависимости от них что то происходит.
+        # Это надо переносить на уровень, и нам тогда будет легче менять управление в диалогах, меню и обычной игре
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -75,22 +98,6 @@ def main():
                     hero.fall()
                 elif event.key == pygame.K_LSHIFT:
                     hero.cast(Fire_lion)
-                elif event.key == pygame.K_KP6:
-                    hero.cast(Fireball, 'R')
-                elif event.key == pygame.K_KP9:
-                    hero.cast(Fireball, 'RU')
-                elif event.key == pygame.K_KP3:
-                    hero.cast(Fireball, 'RD')
-                elif event.key == pygame.K_KP4:
-                    hero.cast(Fireball, 'L')
-                elif event.key == pygame.K_KP7:
-                    hero.cast(Fireball, 'LU')
-                elif event.key == pygame.K_KP1:
-                    hero.cast(Fireball, 'LD')
-                elif event.key == pygame.K_KP0:
-                    hero.cast(Ice_spikes)
-                elif event.key == pygame.K_q:
-                    hero.drink_potion('mana')
                 elif event.key == pygame.K_e:
                     hero.drink_potion()
                 elif event.key == pygame.K_RETURN:
@@ -102,27 +109,29 @@ def main():
                 elif event.key == pygame.K_w:
                     hero.stop_y()
 
-
-            if event.type == pygame.KEYUP and event.key == pygame.K_SPACE:
-                hero.teleporta()
-
+        # Тут у нас идут обновления и отрисовки. Тогже надо вынести на уровень наверное,
+        # что бы главный луп просто переводил нас с уровня на уровень в зависимости от надобности.
         active_elements.update()
         current_level.update()
 
+        # Проверяем, не надо ли сдвигать мир
         hero.world_shift()
 
+        # Заполняем экран фоном, и потом отрисовываем все элементы
         screen.fill(SAND)
         current_level.draw(screen)
         hero.hud_draw(screen)
         active_elements.draw(screen)
 
-
-
+        # Тут мы следим за тем что бы у нас было 60 кадров в секунду
         clock.tick(60)
 
+        # и вызываем функцию что бы все обновилось
         pygame.display.flip()
 
+    # если мы вышли из цикла, то просто выходим из игры
     pygame.quit()
 
 if __name__ == '__main__':
+    # запускаем игры, стандартная питоновская тема
     main()
