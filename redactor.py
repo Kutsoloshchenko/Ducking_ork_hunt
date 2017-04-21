@@ -318,6 +318,7 @@ class Sand_ground_static(Grass_ground_static):
         self.rect.y = 20
         self.image_path = './/Grass//Sand_walls.png'
 
+
 class Wood_ground_static(Grass_ground_static):
     def __init__(self, list_type, level):
         super().__init__(list_type, level)

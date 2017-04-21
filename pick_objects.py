@@ -42,7 +42,6 @@ class Pickappble_object(Animated_sprite):
             self.speed_y += 0.35
 
 
-
 class Health_potion(Pickappble_object):
     """Хэлс поушен. Получает картинку жизни просто"""
     def __init__(self, ground):

@@ -1,3 +1,5 @@
+"""Главный файл игры. Тут мы описываем само построение игры и как она идет"""
+
 import pygame
 import os
 from constants import *

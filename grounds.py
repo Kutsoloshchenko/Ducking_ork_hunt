@@ -66,6 +66,7 @@ class Hover_ground(Ground):
         if cur_pos <= self.boundaries_y[0] or cur_pos >= self.boundaries_y[1]:
             self.speed[1] *= -1
 
+
 class Ladder(Ground):
     """Специальный класс для лестницю Главное в нем это его имя, а в остальном это обычная земля"""
     def __init__(self):

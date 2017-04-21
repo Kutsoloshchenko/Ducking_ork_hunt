@@ -1,6 +1,6 @@
 Image = .//characters//Ahriman.png
 Task = kill
-Object = Witch([self.ground])
+Object = Witch([self.ground], quest = 1)
 Object X = 250
 Object y = 350
 Reward = Health_potion

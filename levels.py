@@ -1,3 +1,5 @@
+"""Файл с уровнями игры"""
+
 import pygame
 import os
 from constants import *
@@ -8,31 +10,43 @@ from quest_menu import *
 
 
 class Level:
-    #Level superclass
-    def __init__(self, player,file = None):
-        # list of ground, enemies, and adding player
+    """Суперкласс уровня. Создает все необходимые функции для того что бы уровень работал, а мы просто его наполняем"""
+
+    def __init__(self, player, file=None):
+        """Базовая инициализация уровня"""
+        # список земли присутствующей на уровне (платформы, балконы и т.д.)
         self.ground_list = pygame.sprite.Group()
+        # саисок врагов на уровне
         self.enemy_list = pygame.sprite.Group()
+        # Список погибших врагов, для спавна
         self.dead_enemy_list = []
-        self.character_list = pygame.sprite.Group()
+        # список снарядов спелов и так далее
         self.projectile_list = pygame.sprite.Group()
+        # Список айтемов на уровне
         self.items_list = pygame.sprite.Group()
+        # Список нпс, дверей и так далее. Все что можно использовать
         self.use_list = pygame.sprite.Group()
+        # ссылка на игрока
         self.player = player
-        self.character_list.add(player)
-        # This is background
+        # Это бэграунд уровня
         self.background = None
-        # Level settings
+        # А это его начальная позиция
         self.shift_x = 0
         self.shift_y = 0
 
         if file:
+            # Говорит уровню играть музыку, если мы ему эту музыку дали.
+            # Для редактора, что бы можно было уровень без музла запускать
             self._play(file)
 
     def shift_level(self, shift_x, shift_y):
+        """Функция передвижения уровня. Когда игрок достигает определенной точки на экране, 
+        смещает уровень так что создается вид что игрок перемещается по уровню"""
+        # Тут непосредственно позицию уровня меняет
         self.shift_x += shift_x
         self.shift_y += shift_y
 
+        # А тут проходится по всем элементам на уровне и их смещает на нужную величину
         for use in self.use_list:
             use.rect.x += shift_x
             use.rect.y += shift_y
@@ -54,9 +68,12 @@ class Level:
             projectile.rect.y += shift_y
 
     def update(self):
-        for i in self.dead_enemy_list:
-                i.revive()
+        """Тут функция обновления всех елементов на уровне"""
 
+        # Вызываем функцию ревайва всех умерших врагов
+        for enemy in self.dead_enemy_list:
+                enemy.revive()
+        # Апдейтим все елементы
         self.items_list.update()
         self.ground_list.update()
         self.enemy_list.update()
@@ -64,6 +81,7 @@ class Level:
         self.use_list.update()
 
     def draw(self, screen):
+        """Функция рисования всех елментов и бэкграунта"""
         screen.blit(self.background, (self.shift_x, self.shift_y))
         self.ground_list.draw(screen)
         self.enemy_list.draw(screen)
@@ -72,12 +90,16 @@ class Level:
         self.use_list.draw(screen)
 
     def _play(self, file):
+        """функция которая запускает проигрышь музыки. Наверное лучше миксер вывести не на уровень а на игру в целом, н
+        о это мы еще посмотрим, пока что будеи на уровне"""
         pygame.mixer.init()
         self.m_player = pygame.mixer.Sound
         self.m_player.play(file, loops=-1)
 
+
 class Training_ground(Level):
     def __init__(self, player):
+        """Здесь мы просто указываем что есть на этом уровне, и все. По сути большинство кода генерится в редакторе"""
         file = './/sound//Music//sound.wav'
         file = pygame.mixer.Sound(file = file)
         Level.__init__(self, player, file)
@@ -141,8 +163,6 @@ class Training_ground(Level):
         self.use_list.add(npc)
 
         self.player.set_possition(173, 301)
-
-
 
 
 class second_lvl(Level):

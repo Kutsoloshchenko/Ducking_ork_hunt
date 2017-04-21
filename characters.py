@@ -238,8 +238,8 @@ class Enemy(Character):
             self.revive_counter = 0
 
     def dead_or_alive(self):
-        """Проверяет, помер ли враг или нет. Если помер - убирает его изх всех листов уровня,
-         и добавляет его в лист мертвых врагов, там где они ожидают оживления"""
+        """Проверяет, помер ли враг или нет. Если помер - убирает его из всех листов уровня,
+         и добавляет его в лист мертвых врагов, там где они ожидают оживления. """
         if self.HP <= 0:
             self.kill()
             self.ground.dead_enemy_list.append(self)
@@ -489,7 +489,7 @@ class Hero(Character):
         # Устанавливаем начальное и максимальное значение ХП, патроны
         self.HP, self.bullets_num, self.max_HP = (50, 6, 100)
         self.ground = None
-        self.spell_cd, self.inactive_time = [0 for i in range(2)]
+        self.spell_cd, self.reload_time = [0 for i in range(2)]
         # Загружаем картинки для панели персонажа, здоровья и т.д.
         self.image_health = pygame.image.load(os.path.join('.//HUD//health.png')).convert()
         self.bullets = pygame.image.load(os.path.join('.//HUD//cilinder.jpg')).convert()
@@ -510,10 +510,10 @@ class Hero(Character):
 
     def reload(self):
         """Функция перезарядки револьвера"""
-        if self.bullets_num !=6:
+        if self.bullets_num !=6 and self.reload_time ==0:
             # Если барабан не полный, то заряжаем один патрон, ставим кул даун всех действий 10, и воспроизводим звук
             self.bullets_num += 1
-            self.inactive_time = 10
+            self.reload_time = 10
             file = self.ground.m_player('.//sound//Sound_exf//reload.wav')
             self.ground.m_player.play(file)
 
@@ -594,8 +594,8 @@ class Hero(Character):
             self.spell_cd -= 1
         if self.invul_time != 0:
             self.invul_time -= 1
-        if self.inactive_time !=0:
-            self.inactive_time -= 1
+        if self.reload_time !=0:
+            self.reload_time-=1
 
     def use(self, clock, screen):
         """Функция использования НПС (в будущем и другие вещи). Если столкнулся с НПС,
@@ -620,11 +620,9 @@ class Hero(Character):
                 del hit
 
     def update(self):
-        """Обновление положения персонажа. Если есть каунтер неактивного времени - просто уменьшает все куллдауны и все"""
-        if not self.inactive_time:
-            Character.update(self)
-            self.pick_up()
-
+        """Обновление положения персонажа."""
+        Character.update(self)
+        self.pick_up()
         self._cool_downs()
 
     def drink_potion(self):
