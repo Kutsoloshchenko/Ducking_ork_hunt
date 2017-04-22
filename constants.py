@@ -77,15 +77,15 @@ class Scene:
 
     def update(self):
         """Обновление всех елементов которые присутствуют на уровне, меню или диалоге"""
-        for group in self.groups:
+        for group in self.groups.values():
             group.update()
 
 
     def draw(self, screen):
         """Тут мы рисуем все елементы которые надо отрисовывать на уровне, в пункте меню, в диалоге и т.д."""
-        for group in self.groups:
+        for group in self.groups.values():
             group.draw(screen)
 
-    def player_controls(self):
+    def player_control(self):
         """Тут мы задаем при нажатии на какие кнопки, какие события будут происходить"""
         pass

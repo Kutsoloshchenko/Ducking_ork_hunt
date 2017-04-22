@@ -5,9 +5,8 @@
 import pygame
 import os
 from constants import *
-from characters import Hero, Bandit
+from characters import Hero
 from grounds import *
-from spells import Fire_lion, Fireball
 from levels import Training_ground
 
 

@@ -34,7 +34,7 @@ class Level(Scene):
 
         # записываем все елементы в словарик, что бы обновлять их одним скопом
         self.groups = {'ground': self.ground_list, 'enemies': self.enemy_list,
-                       'projectile': self.projectile_list, 'items': self.items_list, 'usable': self.use_list}
+                       'projectile': self.projectile_list, 'items': self.items_list, 'use': self.use_list}
 
         # А это его начальная позиция
         self.shift_x = 0
@@ -52,7 +52,7 @@ class Level(Scene):
         self.shift_x += shift_x
         self.shift_y += shift_y
 
-        for group in self.groups:
+        for group in self.groups.values():
             for element in group:
                 element.rect.x += shift_x
                 element.rect.y += shift_y
@@ -78,7 +78,7 @@ class Level(Scene):
         self.m_player = pygame.mixer.Sound
         self.m_player.play(file, loops=-1)
 
-    def player_controls(self, screen, clock):
+    def player_control(self, screen, clock):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:

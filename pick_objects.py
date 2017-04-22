@@ -20,7 +20,7 @@ class Pickappble_object(Animated_sprite):
         self.gravity()
         self.rect.y += self.speed_y
 
-        collisions_with_y = pygame.sprite.spritecollide(self, self.ground.group['ground'], False)
+        collisions_with_y = pygame.sprite.spritecollide(self, self.ground.groups['ground'], False)
 
         for hit in collisions_with_y:
             if self.speed_y > 0:

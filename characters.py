@@ -242,7 +242,11 @@ class Enemy(Character):
          и добавляет его в лист мертвых врагов, там где они ожидают оживления. """
         if self.HP <= 0:
             self.kill()
-            self.ground.dead_enemy_list.append(self)
+            try:
+                self.rect.x =  self.initial_x
+                self.ground.dead_enemy_list.append(self)
+            except:
+                del self
 
     def set_possition(self, x=0, y=0):
         """Вызхывает родительскую функцию задания координат,
