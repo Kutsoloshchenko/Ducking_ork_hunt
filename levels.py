@@ -78,7 +78,7 @@ class Level(Scene):
         self.m_player = pygame.mixer.Sound
         self.m_player.play(file, loops=-1)
 
-    def player_control(self, screen, clock):
+    def player_control(self, game):
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
@@ -103,7 +103,7 @@ class Level(Scene):
                 elif event.key == pygame.K_e:
                     self.player.drink_potion()
                 elif event.key == pygame.K_RETURN:
-                    self.player.use(clock, screen)
+                    self.player.use(game)
 
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a or event.key == pygame.K_d:

@@ -5,7 +5,7 @@ import pygame
 import os
 
 
-class Quest_dialog():
+class Quest_dialog(Scene):
     def __init__(self, NPC, not_active, active, compleated):
         """Функция инициализации диалога. Принимает ссылку на НПС который его выдал,
         и три списка списка реплик и ответов персонажа"""
@@ -57,7 +57,7 @@ class Quest_dialog():
         else:
             return self.text_quest_is_not_active, self.answers_quest_is_not_active
 
-    def draw(self, clock, screen):
+    def run(self, clock, screen):
         """Непосредственно функция отрисовки квеста, которую запускает НПС.
         Получает контроль на часами и экраном игры"""
 

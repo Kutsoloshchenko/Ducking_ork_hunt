@@ -6,6 +6,7 @@
 import pygame
 from constants import *
 from grounds import Hover_ground, Ladder
+from useobjects import NewSceneTrigger
 from spells import Enemy_Fireball
 from pick_objects import Mana_potion, Health_potion, Quest_object
 from quest_menu import *
@@ -668,7 +669,7 @@ class Hero(Character):
             self.rect.x +=20
 
 
-class NPC(Character):
+class NPC(Character, NewSceneTrigger):
     """Персонаж который выдает квест и диалог"""
     def __init__(self, settings):
         """Инициализация нпс с квестом"""
@@ -683,7 +684,7 @@ class NPC(Character):
         self.quest_taken = 0
         self.quest_completed = 0
         # Создаем обраточик квестового диалога, и передаем ему все слова
-        self.quest = Quest_dialog(self, not_taken, taken, completed)
+        self.scene = Quest_dialog(self, not_taken, taken, completed)
 
     def check_if_complete(self):
         """Проверяем, выполнен ли квест или нет. Если задача убить - проверяет, жив ли персонаж или нет.
@@ -713,10 +714,6 @@ class NPC(Character):
             self.ground.groups['enemies'].add(self.object)
         else:
             self.ground.groups['items'].add(self.object)
-
-    def use(self, clock, screen):
-        """Запускаем квестовый диалог, и передаем ему управление экраном и временем"""
-        self.quest.draw(clock, screen)
 
     def reward(self):
         """Функция которая дает пользователю зелье здоровья, или кидает на землю зелье если у пользователя больше 9"""
